@@ -1,7 +1,24 @@
 import {useState, useEffect} from 'react'
-//import React from 'react';
-//import logo from './logo.svg';
 import './App.css';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface DataObject {
   timestamp: string,
@@ -79,13 +96,26 @@ const Min = (stuff: DataObjectProps) => {
 function App() {
 
   const [data, setData] = useState<DataObject[]>([])
-
+  
   useEffect(() => {
     fetch('http://localhost:3001/spot-data')
     .then(response => response.json())
     .then(res => setData(res as DataObject[]))
   }, [])
 
+  const labels = data.map(d => d.timestamp.substring(11, 16))
+
+  const dataForChart = {
+    labels,
+    datasets: [
+      {
+        label: 'snt/kWh',
+        data: data.map(d => NumberTo2Decimals(arvonlisavero10(eMWhTosntkWh(d.price)))),
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      }
+    ],
+  };
+    
   return (
     <div>
       <h1>Akamon - spothinta ohjelmointitehtävä</h1>
@@ -94,9 +124,9 @@ function App() {
         <Max data={data} />
         <Average data={data} />
       </div>
-        {data.map(d =>
-          <p key={d.timestamp}>{d.price} - {d.timestamp}</p>
-        )}
+      <div className='BarChart'>
+        <Bar data={dataForChart} />
+      </div>
     </div>
   );
 }
