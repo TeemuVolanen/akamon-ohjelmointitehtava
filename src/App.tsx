@@ -1,3 +1,4 @@
+import React from 'react';
 import {useState, useEffect} from 'react'
 import './App.css';
 import {
@@ -11,6 +12,10 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
+
+/**
+ * Register imported components for chart.js
+ */
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -20,6 +25,10 @@ ChartJS.register(
   Legend
 )
 
+
+/**
+ * Interface for fetched data
+ */
 interface DataObject {
   timestamp: string,
   price: number,
@@ -27,30 +36,63 @@ interface DataObject {
   unit: string  
 }
 
+
+/**
+ * Interface for props
+ */
 interface DataObjectProps {
   data: DataObject[]
 }
 
-function eMWhTosntkWh(MWh: number): number {
-  let kWh = MWh * 0.1
-  return kWh
+
+/**
+ * Converts e/MWh to snt/kWh
+ * @param eMWh number in e/MWh
+ * @returns number in snt/kWh
+ */
+function eMWhTosntkWh(eMWh: number): number {
+  let sntkWh: number = eMWh * 0.1
+
+  return sntkWh
 }
 
+
+/**
+ * Adds 10% to a number of its own value
+ * @param n1 number
+ * @returns number but 10% bigger
+ * TODO: This could be normally 24% but temporarily with an if sentence changed to 10%?
+ */
 function arvonlisavero10(n1: number): number {
   let n2: number = n1 + (n1 * 0.1)
+
   return n2
 }
 
+
+/**
+ * Changes number to string that shows 2 decimals
+ * @param n1 number
+ * @returns string of a number with 2 decimals
+ */
 function NumberTo2Decimals(n1: number): string {
   let n2: string = (Math.round(n1 * 100) / 100).toFixed(2)
+
   return n2
 }
 
+
+/**
+ * Creates an element that shows average of the prices from the data
+ * @param dataProps props as type: DataObjectProps
+ * @returns JSX.Element
+ */
 const Average = (dataProps: DataObjectProps) => {
   let sumOfPrices: number = 0
   dataProps.data.map(d => sumOfPrices = sumOfPrices + d.price)
   let averagekWh: number = arvonlisavero10(eMWhTosntkWh(sumOfPrices / dataProps.data.length))
   let average2decimals: string = NumberTo2Decimals(averagekWh) 
+
   return (
     <div className='Box'>
       <p className='BoxText'>Keskiarvo</p>
@@ -59,15 +101,23 @@ const Average = (dataProps: DataObjectProps) => {
   )
 }
 
+
+/**
+ * Creates an element that shows maximum price from the data (and the hour)
+ * @param dataProps props as type: DataObjectProps
+ * @returns JSX.Element
+ * TODO: Max and min very similar. Change them to only one function?
+ */
 const Max = (dataProps: DataObjectProps) => {
   let price: string = "error"
   let hour: string = "error"
   let max: number = Math.max(...dataProps.data.map(d => d.price))
-  const maxO: DataObject | undefined = dataProps.data.find(d => d.price === max)
+  let maxO: DataObject | undefined = dataProps.data.find(d => d.price === max)
   if (maxO !== undefined) {
     price = NumberTo2Decimals(arvonlisavero10(eMWhTosntkWh(maxO.price)))
     hour = maxO.timestamp.substring(11, 16)
   }
+
   return (
     <div className='Box'>
       <p className='BoxText'>Kallein tunti {hour}</p>
@@ -76,15 +126,23 @@ const Max = (dataProps: DataObjectProps) => {
   )
 }
 
+
+/**
+ * Creates an element that shows minimum price from the data (and the hour)
+ * @param dataProps props as type: DataObjectProps
+ * @returns JSX.Element
+ * TODO: Max and min very similar. Change them to only one function?
+ */
 const Min = (dataProps: DataObjectProps) => {
   let price: string = "error"
   let hour: string = "error"
   let min: number = Math.min(...dataProps.data.map(d => d.price))
-  const minO: DataObject | undefined = dataProps.data.find(d => d.price === min)
+  let minO: DataObject | undefined = dataProps.data.find(d => d.price === min)
   if (minO !== undefined) {
     price = NumberTo2Decimals(arvonlisavero10(eMWhTosntkWh(minO.price)))
     hour = minO.timestamp.substring(11, 16)
   }
+
   return (
     <div className='Box'>
       <p className='BoxText'>Halvin tunti {hour}</p>
@@ -93,18 +151,31 @@ const Min = (dataProps: DataObjectProps) => {
   )
 }
 
-function App() {
 
+function App() {
+  /**
+   * State for fetched data
+   */
   const [data, setData] = useState<DataObject[]>([])
   
+  /**
+   * Fetch data from json-server
+   * TODO: error handling?
+   */
   useEffect(() => {
     fetch('http://localhost:3001/spot-data')
     .then(response => response.json())
     .then(res => setData(res as DataObject[]))
   }, [])
 
-  const labels = data.map(d => d.timestamp.substring(11, 16))
+  /**
+   * Labels for chart data
+   */
+  const labels: string[] = data.map(d => d.timestamp.substring(11, 16))
 
+  /**
+   * Options for chart
+   */
   const optionsForChart = {
     scales: {
       y: {
@@ -113,6 +184,9 @@ function App() {
     }
   }
 
+  /**
+   * Data for chart
+   */
   const dataForChart = {
     labels,
     datasets: [
@@ -125,7 +199,7 @@ function App() {
       }
     ],
   }
-    
+
   return (
     <div>
       <h1>Akamon - spothinta ohjelmointitehtävä</h1>
@@ -140,5 +214,6 @@ function App() {
     </div>
   )
 }
+
 
 export default App
