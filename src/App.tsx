@@ -18,7 +18,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-);
+)
 
 interface DataObject {
   timestamp: string,
@@ -46,48 +46,48 @@ function NumberTo2Decimals(n1: number): string {
   return n2
 }
 
-const Average = (stuff: DataObjectProps) => {
+const Average = (dataProps: DataObjectProps) => {
   let sumOfPrices: number = 0
-  stuff.data.map(d => sumOfPrices = sumOfPrices + d.price)
-  let averagekWh: number = arvonlisavero10(eMWhTosntkWh(sumOfPrices / stuff.data.length))
+  dataProps.data.map(d => sumOfPrices = sumOfPrices + d.price)
+  let averagekWh: number = arvonlisavero10(eMWhTosntkWh(sumOfPrices / dataProps.data.length))
   let average2decimals: string = NumberTo2Decimals(averagekWh) 
   return (
     <div className='Box'>
-      <p>Keskiarvo</p>
+      <p className='BoxText'>Keskiarvo</p>
       <p>{average2decimals} snt/kWh</p>
     </div>
   )
 }
 
-const Max = (stuff: DataObjectProps) => {
+const Max = (dataProps: DataObjectProps) => {
   let price: string = "error"
   let hour: string = "error"
-  let max: number = Math.max(...stuff.data.map(d => d.price))
-  const maxO: DataObject | undefined = stuff.data.find(d => d.price === max)
+  let max: number = Math.max(...dataProps.data.map(d => d.price))
+  const maxO: DataObject | undefined = dataProps.data.find(d => d.price === max)
   if (maxO !== undefined) {
     price = NumberTo2Decimals(arvonlisavero10(eMWhTosntkWh(maxO.price)))
     hour = maxO.timestamp.substring(11, 16)
   }
   return (
     <div className='Box'>
-      <p>Kallein tunti {hour}</p>
+      <p className='BoxText'>Kallein tunti {hour}</p>
       <p>{price} snt/kWh</p>
     </div>
   )
 }
 
-const Min = (stuff: DataObjectProps) => {
+const Min = (dataProps: DataObjectProps) => {
   let price: string = "error"
   let hour: string = "error"
-  let min: number = Math.min(...stuff.data.map(d => d.price))
-  const minO: DataObject | undefined = stuff.data.find(d => d.price === min)
+  let min: number = Math.min(...dataProps.data.map(d => d.price))
+  const minO: DataObject | undefined = dataProps.data.find(d => d.price === min)
   if (minO !== undefined) {
     price = NumberTo2Decimals(arvonlisavero10(eMWhTosntkWh(minO.price)))
     hour = minO.timestamp.substring(11, 16)
   }
   return (
     <div className='Box'>
-      <p>Halvin tunti {hour}</p>
+      <p className='BoxText'>Halvin tunti {hour}</p>
       <p>{price} snt/kWh</p>
     </div>
   )
@@ -105,16 +105,26 @@ function App() {
 
   const labels = data.map(d => d.timestamp.substring(11, 16))
 
+  const optionsForChart = {
+    scales: {
+      y: {
+        suggestedMin: 0,
+      }
+    }
+  }
+
   const dataForChart = {
     labels,
     datasets: [
       {
         label: 'snt/kWh',
-        data: data.map(d => NumberTo2Decimals(arvonlisavero10(eMWhTosntkWh(d.price)))),
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        data: data.map(d => arvonlisavero10(eMWhTosntkWh(d.price))),
+        backgroundColor: '#ffdee5',
+        borderWidth: 1.5,
+        borderColor: '#fa193f',
       }
     ],
-  };
+  }
     
   return (
     <div>
@@ -125,10 +135,10 @@ function App() {
         <Average data={data} />
       </div>
       <div className='BarChart'>
-        <Bar data={dataForChart} />
+        <Bar data={dataForChart} options={optionsForChart} />
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
