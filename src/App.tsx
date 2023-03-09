@@ -151,6 +151,23 @@ const Min = (dataProps: DataObjectProps) => {
   )
 }
 
+/**
+ * Fetch data from json-server
+ * @param url url to json-server
+ * @returns Promise<DataObject[]>
+ * TODO: Make error handling better. I dont think this works in all situations
+ */
+async function api(url: string): Promise<DataObject[]> {
+  const response: Response = await fetch(url);
+  if (!response.ok) {
+    console.log('Response not ok')
+    throw new Error(response.statusText);
+  }
+  else {
+    return response.json() as Promise<DataObject[]>;
+  }
+}
+
 
 function App() {
   /**
@@ -160,12 +177,11 @@ function App() {
   
   /**
    * Fetch data from json-server
-   * TODO: error handling?
    */
   useEffect(() => {
-    fetch('http://localhost:3001/spot-data')
-    .then(response => response.json())
+    api('http://localhost:3001/spot-data')
     .then(res => setData(res as DataObject[]))
+    .catch(error => console.log('Virhe:', error));      
   }, [])
 
   /**
